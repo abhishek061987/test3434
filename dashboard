@@ -1,0 +1,29 @@
+import {Component,OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+
+@Component({
+    moduleId:module.id,
+    selector:'dashboard',
+    templateUrl:'dashboard.html'
+    })
+
+export class DashboardComponent implements OnInit  {
+    constructor(private router:Router){
+        console.log('inside dashborad constructor');
+    }
+    ngOnInit (){}
+    logout() {
+    console.log('inside logout 11');
+     this.router.navigate['login'];
+    }
+}
+<div style="width: 70%; ">
+ <nav >
+    <a routerLink="/search" routerLinkActive="active">Subscribe Search</a>
+    <a routerLink="/addupdate" routerLinkActive="active">Subscribe Add</a>
+    <a routerLink="/report" routerLinkActive="active">INQ Error Reporting</a>
+    <p><a [routerLink]="['/login']">Logout</a></p>
+</nav>
+ <router-outlet></router-outlet>
+
+</div>
