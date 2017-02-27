@@ -1,0 +1,181 @@
+export class InqSearchComponent{
+      ein:number;
+      policynumber:number;
+      sourcecode:string;
+      inqid:number;
+      firstname:string;
+      cdbRefId:number;
+
+    constructor(obj?: any) {
+
+      this.ein = obj && obj.ein || null;
+      this.policynumber = obj && obj.policynumber || null;
+      this.inqid = obj && obj.inqid || null;
+      this.firstname = obj && obj.firstname || null;
+      this.cdbRefId = obj && obj.cdbRefId || null;
+
+  }
+}
+
+<dashboard></dashboard>
+<div style="width: 100%">
+<table border='1' style="width: 100%" >
+    
+    <tr>
+        <td><label for="ein">EIN</label></td> 
+        <td><input id="ein" type="text" class="validate" [(ngModel)]="_seachinputcomponent.ein"></td>
+    </tr>
+    <tr>
+        <td><label for="policynumber">Policy Number</label></td> 
+        <td><input id="policy_number" type="text" class="validate" [(ngModel)]="_seachinputcomponent.policynumber"></td>
+    </tr>
+    <tr>
+        <td><label for="sourcecode">Source Code</label></td> 
+        <td><input id="source_code" type="text" class="validate" [(ngModel)]="_seachinputcomponent.sourcecode"></td>
+    </tr>
+    <tr>
+        <td><label for="inqid">INQ ID</label></td> 
+        <td><input id="inq_id" type="text" class="validate" [(ngModel)]="_seachinputcomponent.inqid"></td>
+    </tr>
+    <tr>
+        <td><label for="firstname">First Name</label></td> 
+        <td><input id="first_name" type="text" class="validate" [(ngModel)]="_seachinputcomponent.firstname"></td>
+    </tr>
+    <tr>
+        <td><label for="cdbRefId">CDB Xref ID</label></td> 
+        <td><input id="cdb_xref_id" type="text" class="validate" [(ngModel)]="_seachinputcomponent.cdbRefId"></td>
+    </tr>
+</table>
+<button class="waves-effect waves-light btn" (click)="clearvalues()">Reset</button>
+<button class="waves-effect waves-light btn" (click)="searchsubmit()">Submit</button>
+</div>
+
+import {RoutingDataValue } from '../services/routingdata';
+import {Component,OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {SearchService} from '../services/search.service';
+
+@Component({
+    moduleId:module.id,
+    selector:'searchresult',
+    templateUrl:'searchresult.html',
+})
+export class SearchResult implements OnInit{
+     id:number;
+    policynumber:number;
+    sourcecode:string;
+    inqid:number;
+    firstname:string;
+    cdbRefId:number;    
+    userId:number;
+    title:string;
+    body:string;
+    values:string;
+    searchResults :SearchResult []=[];
+
+    public constructor(private _searchService:SearchService , private _routingDataValue:RoutingDataValue){
+        console.log('routing data -->  '+JSON.stringify(this._routingDataValue.routingDataStorage));
+    }
+    ngOnInit(){
+        console.log('ngOnInit -->  ');
+        this.getINQSearchResult(); // it will load once htnl will be called  like onload funtion
+    }
+    
+getINQSearchResult(){
+    console.log('getINQSearchResult getINQSearchResult  ');
+      this._searchService.getINQSearchResult(this.values)
+     .subscribe(
+         searchResults => {
+             this.searchResults=searchResults;
+            //  if(this.searchResults.length>0){
+            //     this.router.navigate(['/searchresult']);
+                 console.log('this.searchResults lenght  '+this.searchResults.length);
+            //  }
+            } ,
+        error => {
+            console.log(error);
+        },
+     () => console.log("Job Done Get !",this.searchResults.length) 
+     );  
+  } 
+
+   exportCSV(posttable:SearchResult[]){
+        var mystyle = {
+            headers:true,
+             caption: 'My Data',
+              css: '.headers {color:yellow} .cell {color:blue} .caption: {font-size:200px}'
+            };
+        console.log('exportCSV posttable'+posttable);       
+        alasql('SELECT * INTO XLSX("report.XLSX",?) FROM ?', [mystyle,posttable]);
+   }
+
+}
+import {Component} from '@angular/core';
+import {Router} from '@angular/router';
+import {InqSearchComponent} from './inqsearch.component'
+import {SearchService} from '../services/search.service';
+import {SearchResult} from './search.result';
+import {RoutingDataValue } from '../services/routingdata';
+
+@Component({
+    moduleId:module.id,
+    selector:'search',
+    templateUrl:'search.html',
+})
+
+export class SearchComponent {
+    _seachinputcomponent:InqSearchComponent;
+   constructor(private _searchService:SearchService, private router: Router,
+                private routingdatavalues:RoutingDataValue){
+    this._seachinputcomponent={
+            ein:0,
+            policynumber:0,
+            sourcecode:'',
+            inqid:0,
+            firstname:'',
+            cdbRefId:0
+       }       
+       console.log('inside consturctor the search '+this._seachinputcomponent.ein);       
+   }
+  clearvalues() {
+    console.log('clearvalues search ts', this._seachinputcomponent.ein);
+    this._seachinputcomponent.ein=0;
+    this._seachinputcomponent.policynumber=0;
+    this._seachinputcomponent.sourcecode='';
+    this._seachinputcomponent.inqid=0;
+    this._seachinputcomponent.firstname='';
+    this._seachinputcomponent.cdbRefId=0;
+
+  } 
+
+  searchsubmit(){
+      console.log('submit search');
+      this.routingdatavalues.routingDataStorage={
+          "searchinputs":{
+                "ein": this._seachinputcomponent.ein,
+                "policynumber":this._seachinputcomponent.policynumber,
+                "sourcecode":this._seachinputcomponent.sourcecode,
+                "inqid":this._seachinputcomponent.inqid,
+                "firstname":this._seachinputcomponent.firstname,
+                "cdbRefId":this._seachinputcomponent.cdbRefId
+          }
+        }
+
+        if(this._seachinputcomponent.ein>0){
+                        console.log('navigate to search result  ');
+                        this.router.navigate(['/searchresult']);
+        }
+    }
+}
+    <dashboard></dashboard>
+
+<p-dataTable [value]="searchResults" [rows]="3" [paginator]="true"
+     [pageLinks]="6" [responsive]="true" 
+     scrollHeight="400px" scrollable="true"  [stacked]="stacked">
+    <p-header>Search Result</p-header>
+    <p-column field="name" header="Name"></p-column>
+    <p-column field="email" header="Email"></p-column>
+    <p-column field="body" header="Body"></p-column>
+</p-dataTable>
+
+<button (click)="exportCSV(searchResults)">Export table to Excel</button>
