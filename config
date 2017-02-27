@@ -1,0 +1,132 @@
+import { NgModule }      from '@angular/core';
+import { APP_BASE_HREF } from '@angular/common';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+import { AuthManager } from './services/auth.manager';
+import { AuthService } from './services/authservice';
+import { AppComponent }  from './app.component';
+import {AppRoutingModule,routingComponents}  from './app.routing';
+import {DataTableModule,PanelModule,
+  GrowlModule,InputTextModule,InputTextareaModule,TabViewModule,ButtonModule,CodeHighlighterModule,MessagesModule
+
+} from 'primeng/primeng';
+import {SearchService} from './services/search.service';
+import {RoutingDataValue} from './services/routingdata';
+
+import * as alasql from 'alasql';
+
+// used to create fake backend
+import { fakeBackendProvider } from './_helpers/index';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { BaseRequestOptions } from '@angular/http';
+
+
+@NgModule({
+  imports:      [ BrowserModule ,FormsModule,AppRoutingModule,HttpModule,
+  DataTableModule,PanelModule,
+  GrowlModule,InputTextModule,InputTextareaModule,TabViewModule,ButtonModule,CodeHighlighterModule,MessagesModule
+  
+  ,ReactiveFormsModule],
+  declarations: [ AppComponent,routingComponents ],
+  bootstrap:    [ AppComponent ],
+  providers:    [ { provide: APP_BASE_HREF, useValue: '/' } ,AuthManager,AuthService 
+                ,SearchService,RoutingDataValue,                
+                 // providers used to create fake backend
+                fakeBackendProvider,
+                MockBackend,
+                BaseRequestOptions
+                
+                ]
+})
+export class AppModule { }
+
+
+
+import {NgModule} from '@angular/core';
+import {Routes,RouterModule} from "@angular/router";
+import { LoginComponent }  from './login/login.component';
+import { DashboardComponent }  from './DashBoard/dashboard.component';
+import { AddupdateComponent }  from './add/addupdate';
+import { ReportComponent }  from './report/reporting';
+import { SearchComponent }  from './search/search';
+import {AuthManager} from './services/auth.manager';
+import {SearchResult} from './search/search.result';
+
+/**A routed Angular application has one, singleton instance of the Router service.
+ *  When the browser's URL changes, that router looks for a corresponding Route from 
+ * which it can determine the component to display.
+A router has no routes until you configure it. The following example creates four route 
+definitions, configures the router via the RouterModule.forRoot method, and adds the result 
+to the AppModule's imports array. */
+const routes: Routes = [
+    {path: '', pathMatch:'full',redirectTo:'login'},
+    {path: 'login', component:LoginComponent},
+    {path: 'dashboard', component:DashboardComponent , canActivate: [AuthManager] },
+    {path: 'addupdate', component:AddupdateComponent, canActivate: [AuthManager] },
+    {path: 'report', component:ReportComponent, canActivate: [AuthManager] },
+    {path: 'search', component:SearchComponent, canActivate: [AuthManager] },
+    {path: 'searchresult', component:SearchResult, canActivate: [AuthManager] },
+];
+
+@NgModule({
+imports :[RouterModule.forRoot(routes)],
+exports: [RouterModule]
+})
+
+export class AppRoutingModule{}
+
+export const routingComponents   =[LoginComponent,DashboardComponent,AddupdateComponent,ReportComponent,SearchComponent,SearchResult];
+
+
+
+/**
+ * System configuration for Angular samples
+ * Adjust as necessary for your application needs.
+ */
+(function (global) {
+  System.config({
+    paths: {
+      // paths serve as alias
+      'npm:': 'node_modules/'
+    },
+    // map tells the System loader where to look for things
+    map: {
+      // our app is within the app folder
+      app: 'app',
+
+      // angular bundles
+      '@angular/core': 'npm:@angular/core/bundles/core.umd.js',
+      '@angular/common': 'npm:@angular/common/bundles/common.umd.js',
+      '@angular/compiler': 'npm:@angular/compiler/bundles/compiler.umd.js',
+      '@angular/platform-browser': 'npm:@angular/platform-browser/bundles/platform-browser.umd.js',
+      '@angular/platform-browser-dynamic': 'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
+      '@angular/http': 'npm:@angular/http/bundles/http.umd.js',
+      '@angular/router': 'npm:@angular/router/bundles/router.umd.js',
+       '@angular/http/testing': 'npm:@angular/http/bundles/http-testing.umd.js', // added for fake response for authentication testing
+      '@angular/forms': 'npm:@angular/forms/bundles/forms.umd.js',
+
+      // other libraries
+      'rxjs':                      'npm:rxjs',
+      'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js',
+      'primeng':                   'npm:primeng'                
+
+    },
+    // packages tells the System loader how to load when no filename and/or no extension
+    packages: {
+      app: {
+        main: './main.js',
+        defaultExtension: 'js'
+      },
+      rxjs: {
+        defaultExtension: 'js'
+      }
+      ,
+      primeng: {
+          defaultExtension: 'js'
+      }
+    }
+  });
+})(this);
+
+
