@@ -1,0 +1,178 @@
+import { Injectable } from '@angular/core';
+import { CanActivate,ActivatedRouteSnapshot,RouterStateSnapshot,Router } from '@angular/router';
+import {Observable} from 'rxjs/Rx';
+import  {AuthService} from './authservice'
+/**
+ * canActivate interface has canActivate() method
+ * aruments - ActivatedRouteSnapshot,RouterStateSnapshot
+ * return either Observable or a promise boolean
+ */
+@Injectable()
+export class AuthManager implements CanActivate{
+/**injecting any dependencies we need like authservice and router using contructor */
+constructor(private authservice:AuthService,private router:Router){
+    console.log('inside AuthManager constructor');
+}
+
+   canActivate(route:ActivatedRouteSnapshot,
+                state:RouterStateSnapshot){
+        console.log('canActivate -->  '+localStorage.getItem('currentUser'));                   
+        if (localStorage.getItem('currentUser')) {
+                // logged in so return true
+                return true;
+            } 
+            // not logged in so redirect to login page
+            this.router.navigate(['/login']);
+            return false;
+    }
+    
+}
+import { Injectable } from '@angular/core';
+import { Http, Headers, Response } from '@angular/http';
+import { Observable } from 'rxjs';
+import 'rxjs/add/operator/map';
+import {User}  from '../login/user';
+@Injectable()
+export class AuthService {
+    public token: string;
+    isAuthenticated: boolean = false;
+    constructor(private http: Http) {
+        console.log('constructor auth service initaited');
+                // set token if saved in local storage
+        var currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        this.token = currentUser && currentUser.token;
+       console.log('inside authservice constructor current user token   '+this.token);
+
+    }
+    authenticateNow(username: string, password: string) {
+        console.log('authenticateNow'+username);
+       return this.http.post('/api/authenticate', JSON.stringify({ username: username, password: password }))
+            .map((response: Response) => {
+                // login successful if there's a jwt token in the response
+                let token = response.json() && response.json().token;
+                if (token) {
+                    // set token property
+                    this.token = token;
+ 
+                    // store username and jwt token in local storage to keep user logged in between page refreshes
+                    localStorage.setItem('currentUser', JSON.stringify({ username: username, token: token }));
+ 
+                    // return true to indicate successful login
+                    return true;
+                } else {
+                    // return false to indicate failed login
+                    return false;
+                }
+            });
+
+
+    }
+
+      logout(): void {
+        // clear token remove user from local storage to log user out
+          console.log('logged out');
+           this.token = null;
+        localStorage.removeItem('currentUser');
+    }
+}
+import {Injectable} from '@angular/core';
+
+
+/***
+ * this is a provider we will use through out the application to inject any routing parameter;
+ * hence having public defination; include this in app.module
+ * 
+ */
+@Injectable()
+export class RoutingDataValue{
+    public routingDataStorage:any;
+    public constructor(){
+        console.log('routing data injected :  -->  '+this.routingDataStorage);
+    }
+}
+import {Injectable} from '@angular/core';
+import { Http, Headers,Response,RequestOptions } from '@angular/http';
+import 'rxjs/add/operator/map';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/do';
+
+
+import 'rxjs/add/operator/toPromise';
+import {SearchResult} from '../search/search.result';
+import {InqSearchComponent} from '../search/inqsearch.component'
+
+import {AuthService} from '../services/authservice';
+
+/** when we will use http we have to import httpmodule provider in out module ts to tell angular to inject 
+ * http service wen required 
+ */
+@Injectable()
+export class SearchService{
+    private searchUrl:string = 'http://jsonplaceholder.typicode.com/posts/1/comments';
+    constructor(private _http:Http , private authenticationService: AuthService){
+
+    }
+    getINQSearchResult(values:string):Observable<SearchResult[]>{
+        console.log('method getINQSearchResult values --> ' +values);
+        console.log('method getINQSearchResult values  this.authenticationService.token  --> ' +this.authenticationService.token );
+
+         let headers = new Headers({ 'Authorization': 'Bearer ' + this.authenticationService.token });
+        let options = new RequestOptions({ headers: headers });
+ 
+        // // get users from api
+        // return this.http.get('/api/users', options)
+        //     .map((response: Response) => response.json());
+
+
+        return this._http.get(this.searchUrl,options)
+                    .map(this.extractData)
+                    .do(value => console.log("data received : "+value))
+                    .catch(this.handleError);
+    }
+     private extractData(res: Response) {
+            let body = res.json();        
+            return body || [];
+  }
+     private handleError (error: Response | any) {
+    // In a real world app, we might use a remote logging infrastructure
+            let errMsg: string;
+            console.log('method getINQSearchResult handleError +' +error.stringify);
+            if (error instanceof Response) {
+            const body = error.json() || '';
+            const err = body.error || JSON.stringify(body);
+            errMsg = `${error.status} - ${error.statusText || ''} ${err}`;
+            } else {
+            errMsg = error.message ? error.message : error.toString();
+            }
+            console.error(errMsg);
+            return Observable.throw(errMsg);
+  }
+}
+import { Injectable } from '@angular/core';
+import { Http, Headers, RequestOptions, Response } from '@angular/http';
+import { Observable } from 'rxjs';
+import 'rxjs/add/operator/map'
+ 
+import { AuthService } from '../services/authservice';
+import { User } from '../login/user';
+ 
+@Injectable()
+export class UserService {
+    constructor(
+        private http: Http,
+        private authenticationService: AuthService) {
+            console.log('inside user service');
+    }
+ 
+    getUsers(): Observable<User[]> {
+        // add authorization header with jwt token
+        console.log ('inside get users user service ts');
+        let headers = new Headers({ 'Authorization': 'Bearer ' + this.authenticationService.token });
+        let options = new RequestOptions({ headers: headers });
+ 
+        // get users from api
+        return this.http.get('/api/users', options)
+            .map((response: Response) => response.json());
+    }
+}
