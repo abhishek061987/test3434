@@ -1,0 +1,332 @@
+import {Injectable} from '@angular/core';
+import { Http, Headers,Response,RequestOptions } from '@angular/http';
+import 'rxjs/add/operator/map';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/do';
+
+import 'rxjs/add/operator/toPromise';
+import {SearchResult} from '../search/search.result';
+import {InqSearchComponent} from '../search/inqsearch.component'
+
+import {AuthService} from '../services/authservice';
+import {SearchReturn} from '../search/return_codes';
+
+/** when we will use http we have to import httpmodule provider in out module ts to tell angular to inject 
+ * http service wen required 
+ */
+@Injectable()
+export class SearchService{
+    private searchUrl:string = 'http://jsonplaceholder.typicode.com/posts/1/comments';
+    constructor(private _http:Http , private authenticationService: AuthService){
+
+    }
+    getINQSearchResult(values:string):Observable<SearchReturn>{
+        console.log('method getINQSearchResult values --> ' +values);
+        console.log('method getINQSearchResult values  this.authenticationService.token  --> ' +this.authenticationService.token );
+
+         let headers = new Headers({ 'Authorization': 'Bearer ' + this.authenticationService.token });
+        let options = new RequestOptions({ headers: headers });
+ 
+        // // get users from api
+        // return this.http.get('/api/users', options)
+        //     .map((response: Response) => response.json());
+
+
+        return this._http.get(this.searchUrl,options)
+                    .map(res=>res.json())
+                    .do(value => console.log("data received : "+value))
+                    .catch(this.handleError);
+    }
+     private extractData(response: Response) {
+         
+            let body = response.json();    
+           // deserialize(SearchReturn, response.json());            
+            // console.log(deserialize(SearchReturn, response.json()).error_returns.entries);
+            return body.data || {};
+  }
+     private handleError (error: Response | any) {
+    // In a real world app, we might use a remote logging infrastructure
+            let errMsg: string;
+            console.log('method getINQSearchResult handleError +' +error.stringify);
+            if (error instanceof Response) {
+            const body = error.json() || '';
+            const err = body.error || JSON.stringify(body);
+            errMsg = `${error.status} - ${error.statusText || ''} ${err}`;
+            } else {
+            errMsg = error.message ? error.message : error.toString();
+            }
+            console.error(errMsg);
+            return Observable.throw(errMsg);
+  }
+}
+
+===========================
+
+
+    <dashboard></dashboard>
+
+<p-dataTable [value]="errorReturns" [rows]="3" [paginator]="true"
+     [pageLinks]="6" [responsive]="true" 
+     scrollHeight="400px" scrollable="true"  [stacked]="stacked">
+    <p-header>Search Result</p-header>
+    <p-column field="error_type" header="error_type"></p-column>
+    <p-column field="error_cd" header="error_cd"></p-column>
+    <p-column field="error_msg" header="error_msg"></p-column>
+</p-dataTable>
+
+<button (click)="exportCSV(errorReturns)">Export table to Excel</button>
+
+
+
+==========
+
+
+import {RoutingDataValue } from '../services/routingdata';
+import {Component,OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {SearchService} from '../services/search.service';
+
+import {SearchReturn} from '../search/return_codes';
+import {ErrorReturns} from '../search/error_returns';
+
+@Component({
+    moduleId:module.id,
+    selector:'searchresult',
+    templateUrl:'searchresult.html',
+})
+export class SearchResult implements OnInit{
+   
+    values:string;
+    searchreturn:SearchReturn;
+   searchreturns:SearchReturn []=[];
+   errorReturns:ErrorReturns[]=[];
+
+    public constructor(private _searchService:SearchService , private _routingDataValue:RoutingDataValue,private router:Router){
+        console.log('routing data -->  '+JSON.stringify(this._routingDataValue.routingDataStorage));
+    }
+    ngOnInit(){
+        console.log('ngOnInit -->  ');
+        this.getINQSearchResult(); // it will load once htnl will be called  like onload funtion
+    }
+    
+getINQSearchResult(){
+    console.log('getINQSearchResult getINQSearchResult  ');
+      this._searchService.getINQSearchResult(this.values)
+     .subscribe(
+         searchreturn => {
+                this.searchreturn = searchreturn;
+                 console.log('items:  searchResults' + searchreturn);
+     
+                    this.errorReturns = <ErrorReturns[]>this.searchreturn.return_codes;
+                    console.log('fff',this.errorReturns);
+                    if(this.errorReturns.length>0)
+                         this.router.navigate(['/searchresult']);
+             }
+         ,
+        error => {
+            console.log(error);
+        },
+     () => console.log("Job Done Get !",this.searchreturn.return_codes) 
+     );  
+  } 
+
+   exportCSV(posttable:ErrorReturns[]){
+        var mystyle = {
+            headers:true,
+             caption: 'My Data',
+              css: '.headers {color:yellow} .cell {color:blue} .caption: {font-size:200px}'
+            };
+        console.log('exportCSV posttable'+posttable);       
+        alasql('SELECT * INTO XLSX("report.XLSX",?) FROM ?', [mystyle,posttable]);
+   }
+
+}
+
+=============
+import {Component} from '@angular/core';
+import {Router} from '@angular/router';
+import {InqSearchComponent} from './inqsearch.component'
+import {SearchService} from '../services/search.service';
+import {SearchResult} from './search.result';
+import {RoutingDataValue } from '../services/routingdata';
+
+@Component({
+    moduleId:module.id,
+    selector:'search',
+    templateUrl:'search.html',
+})
+
+export class SearchComponent {
+    _seachinputcomponent:InqSearchComponent;
+   constructor(private _searchService:SearchService, private router: Router,
+                private routingdatavalues:RoutingDataValue){
+    this._seachinputcomponent={
+            ein:0,
+            policynumber:0,
+            sourcecode:'',
+            inqid:0,
+            firstname:'',
+            cdbRefId:0
+       }       
+       console.log('inside consturctor the search '+this._seachinputcomponent.ein);       
+   }
+  clearvalues() {
+    console.log('clearvalues search ts', this._seachinputcomponent.ein);
+    this._seachinputcomponent.ein=0;
+    this._seachinputcomponent.policynumber=0;
+    this._seachinputcomponent.sourcecode='';
+    this._seachinputcomponent.inqid=0;
+    this._seachinputcomponent.firstname='';
+    this._seachinputcomponent.cdbRefId=0;
+
+  } 
+
+  searchsubmit(){
+      console.log('submit search');
+      this.routingdatavalues.routingDataStorage={
+          "searchinputs":{
+                "ein": this._seachinputcomponent.ein,
+                "policynumber":this._seachinputcomponent.policynumber,
+                "sourcecode":this._seachinputcomponent.sourcecode,
+                "inqid":this._seachinputcomponent.inqid,
+                "firstname":this._seachinputcomponent.firstname,
+                "cdbRefId":this._seachinputcomponent.cdbRefId
+          }
+        }
+
+        if(this._seachinputcomponent.ein>0){
+                        console.log('navigate to search result  ');
+                        this.router.navigate(['/searchresult']);
+        }
+    }
+}
+
+=====
+
+import {ErrorReturns} from '../search/error_returns';
+
+export class SearchReturn { 
+    return_codes: ErrorReturns [] =[];
+    constructor() {
+    }
+}
+
+=====
+
+export class ErrorReturns {
+    error_type:string;
+    error_cd:string;
+    error_msg:string;
+
+    constructor() {
+        
+    }
+==================
+
+import { Http, BaseRequestOptions, Response, ResponseOptions, RequestMethod } from '@angular/http';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+
+export let fakeBackendProvider = {
+    // use fake backend in place of Http service for backend-less development
+    provide: Http,
+    useFactory: function (backend: MockBackend, options: BaseRequestOptions) {
+        // configure fake backend
+        backend.connections.subscribe((connection: MockConnection) => {
+            let testUser = { username: 'test', password: 'test', firstName: 'Test', lastName: 'User' };
+
+            // wrap in timeout to simulate server api call
+            console.log('fakeBackendProvider  user '+testUser.username);
+            console.log('fakeBackendProvider  user '+testUser.password);
+
+            setTimeout(() => {
+
+                // fake authenticate api end point
+                if (connection.request.url.endsWith('/api/authenticate') && connection.request.method === RequestMethod.Post) {
+                    // get parameters from post request
+                    let params = JSON.parse(connection.request.getBody());
+                    console.log('fakeBackendProvider  params'+params.username);
+
+                    // check user credentials and return fake jwt token if valid
+                    if (params.username === testUser.username && params.password === testUser.password) {
+                        console.log('fakeBackendProvider Response  params'+params.password);
+                        connection.mockRespond(new Response(
+                            new ResponseOptions({ status: 200, body: { token: 'fake-jwt-token' } })
+                        ));
+                    } else {
+                        connection.mockRespond(new Response(
+                            new ResponseOptions({ status: 200 })
+                        ));
+                    }
+                }
+
+                // fake users api end point
+                if (connection.request.url.endsWith('http://jsonplaceholder.typicode.com/posts/1/comments') && connection.request.method === RequestMethod.Get) {
+                    // check for fake auth token in header and return test users if valid, this security is implemented server side
+                    // in a real application
+                        console.log('fakeBackendProvider http://jsonplaceholder.typicode.com/posts/1/c ');
+
+                    if (connection.request.headers.get('Authorization') === 'Bearer fake-jwt-token') {
+                        connection.mockRespond(new Response(
+                            new ResponseOptions({ status: 200, body:
+
+
+                                {
+                           "return_codes":     
+                             [
+                                {
+                                    "error_type": "F",
+                                    "error_cd": "N/A",
+                                    "error_msg": "id l99999am laborum"
+                                },
+                                 {
+                                    "error_type": "F",
+                                    "error_cd": "N/A",
+                                    "error_msg": "id lab8888888888uam laborum"
+                                },
+                                   {
+                                    "error_type": "F",
+                                    "error_cd": "N/A",
+                                    "error_msg": "id lfg666666um"
+                                },
+                                 {
+                                    "error_type": "F",
+                                    "error_cd": "N/A",
+                                    "error_msg": "id la454gm"
+                                },
+                                  {
+                                    "error_type": "F",
+                                    "error_cd": "N/A",
+                                    "error_msg": "id 3333333333rum"
+                                }
+                           ] 
+                }
+
+
+
+
+
+                
+})
+                        ));
+                    } else {
+                        // return 401 not authorised if token is null or invalid
+                        connection.mockRespond(new Response(
+                            new ResponseOptions({ status: 401 })
+                        ));
+                    }
+                }
+
+            }, 500);
+
+        });
+
+        return new Http(backend, options);
+    },
+    deps: [MockBackend, BaseRequestOptions]
+};
+
+}
+=======
+
+
