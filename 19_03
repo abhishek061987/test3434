@@ -1,3 +1,28 @@
+
+
+
+install font-awesome ; if already install than ignore
+
+1)In index.html add 
+
+     <link rel="stylesheet" type="text/css" href="node_modules/font-awesome/css/font-awesome.min.css" />
+2)add in package.json
+  In 	Dependency:
+"font-awesome": "^4.7.0",
+
+3) app.module.ts
+DialogModule,TooltipModule
+
+4)change made in below file
+Search.ts
+search.html
+searchresult.html
+searchreturn.component.ts
+search.result.ts
+
+
+
+===========
 app.module
 
 
