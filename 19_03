@@ -1,0 +1,663 @@
+app.module
+import { NgModule }      from '@angular/core';
+import { APP_BASE_HREF } from '@angular/common';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+import { AuthManager } from './services/auth.manager';
+import { AuthService } from './services/authservice';
+import { AppComponent }  from './app.component';
+import {AppRoutingModule,routingComponents}  from './app.routing';
+import {DataTableModule,PanelModule,
+  GrowlModule,InputTextModule,InputTextareaModule,TabViewModule,ButtonModule,CodeHighlighterModule,MessagesModule,FieldsetModule
+  ,DropdownModule,DialogModule,TooltipModule
+} from 'primeng/primeng';
+import {SearchService} from './services/search.service';
+import {RoutingDataValue} from './services/routingdata';
+
+import * as alasql from 'alasql';
+
+// used to create fake backend
+import { fakeBackendProvider } from './_helpers/index';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { BaseRequestOptions } from '@angular/http';
+
+
+@NgModule({
+  imports:      [ BrowserModule ,FormsModule,AppRoutingModule,HttpModule,
+  DataTableModule,PanelModule,
+  GrowlModule,InputTextModule,InputTextareaModule,TabViewModule,ButtonModule,CodeHighlighterModule,MessagesModule,FieldsetModule
+  ,DropdownModule,DialogModule,TooltipModule
+  
+  ,ReactiveFormsModule],
+  declarations: [ AppComponent,routingComponents ],
+  bootstrap:    [ AppComponent ],
+  providers:    [ { provide: APP_BASE_HREF, useValue: '/' } ,AuthManager,AuthService 
+                ,SearchService,RoutingDataValue,                
+                 // providers used to create fake backend
+                fakeBackendProvider,
+                MockBackend,
+                BaseRequestOptions
+                
+                ]
+})
+export class AppModule { }
+
+
+============================================
+index.html
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>sss</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="node_modules/primeng/resources/themes/omega/theme.css" />
+    <link rel="stylesheet" type="text/css" href="node_modules/primeng/resources/primeng.min.css" />
+     <link rel="stylesheet" type="text/css" href="node_modules/font-awesome/css/font-awesome.min.css" />
+    <!-- Polyfill(s) for older browsers -->
+    <script src="node_modules/core-js/client/shim.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.7.12/xlsx.core.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/alasql/0.3/alasql.min.js"></script>
+    <script src="node_modules/zone.js/dist/zone.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="systemjs.config.js"></script>
+    <script>
+      System.import('app').catch(function(err){ console.error(err); });
+    </script>
+  </head>
+
+  <body>
+    <div class='center-div' >
+    <my-app>Loading AppComponent content here ...</my-app>
+    </div>
+  </body> 
+</html>
+========================================================
+package.json
+
+{
+  "name": "inq-proj",
+  "version": "1.0.0",
+  "description": "inq package.json from the documentation, supplemented with testing support",
+  "scripts": {
+    "start": "concurrently \"tsc -w\" \"lite-server\" ",
+    "e2e": "tsc && concurrently \"http-server -s\" \"protractor protractor.config.js\" --kill-others --success first",
+    "lint": "tslint ./app/**/*.ts -t verbose",
+    "lite": "lite-server",
+    "pree2e": "webdriver-manager update",
+    "test": "tsc && concurrently \"tsc -w\" \"karma start karma.conf.js\"",
+    "test-once": "tsc && karma start karma.conf.js --single-run",
+    "tsc": "tsc",
+    "tsc:w": "tsc -w"
+  },
+  "keywords": [],
+  "author": "UJWALA",
+  "license": "UJWALA",
+  "dependencies": {
+    "@angular/common": "~2.4.0",
+    "@angular/compiler": "~2.4.0",
+    "@angular/core": "~2.4.0",
+    "@angular/forms": "~2.4.0",
+    "@angular/http": "~2.4.0",
+    "@angular/platform-browser": "~2.4.0",
+    "@angular/platform-browser-dynamic": "~2.4.0",
+    "@angular/router": "~3.4.0",
+    "alasql": "^0.3.7",
+    "angular-in-memory-web-api": "~0.2.4",
+    "core-js": "^2.4.1",
+    "font-awesome": "^4.7.0",
+    "primeng": "^2.0.0",
+    "rxjs": "5.0.1",
+    "systemjs": "0.19.40",
+    "zone.js": "^0.7.4"
+  },
+  "devDependencies": {
+    "concurrently": "^3.1.0",
+    "lite-server": "^2.2.2",
+    "typescript": "~2.0.10",
+    "canonical-path": "0.0.2",
+    "http-server": "^0.9.0",
+    "tslint": "^3.15.1",
+    "lodash": "^4.16.4",
+    "jasmine-core": "~2.4.1",
+    "karma": "^1.3.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-cli": "^1.0.1",
+    "karma-jasmine": "^1.0.2",
+    "karma-jasmine-html-reporter": "^0.2.2",
+    "protractor": "~4.0.14",
+    "rimraf": "^2.5.4",
+    "@types/node": "^6.0.46",
+    "@types/jasmine": "^2.5.41"
+  },
+  "repository": {}
+}
+
+========================
+returncodes.component.ts
+
+
+
+export class ReturnCodes{
+
+    error_type:string;
+    error_cd:string;
+    error_msg:string;
+    constructor(obj?: any) {
+        this.error_type = obj && obj.error_type || null;
+        this.error_cd = obj && obj.error_cd || null;
+        this.error_msg = obj && obj.error_msg || null;
+    }
+}
+
+
+
+========================
+
+search.result.ts
+
+
+import { RoutingDataValue } from '../services/routingdata';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { SearchService } from '../services/search.service';
+import { SearchReturn } from '../search/searchreturn.component';
+import { ReturnCodes } from '../search/returncodes.component';
+
+import {Message,SelectItem} from 'primeng/primeng';
+
+
+
+@Component({
+    moduleId: module.id,
+    selector: 'searchresult',
+    templateUrl: 'searchresult.html',
+})
+export class SearchResult implements OnInit {
+    values: string;
+    isDisplayErrorDialog:boolean=false;
+    errorreturn:ReturnCodes;
+    searchreturn: SearchReturn;
+    searchreturns: SearchReturn[] = [];
+    errorReturns: ReturnCodes[] = [];
+    msgs: Message[] = [];
+
+    public constructor(private _searchService: SearchService, private _routingDataValue: RoutingDataValue, private router: Router) {
+        console.log('routing data --> ' + JSON.stringify(this._routingDataValue.routingDataStorage));
+    }
+    ngOnInit() {
+        console.log('ngOnInit --> ');
+       this.isDisplayErrorDialog=false;
+        this.getINQSearchResult(); // it will load once htnl will be called like onload funtion
+    }
+    getINQSearchResult() {
+        this.isDisplayErrorDialog=false;
+        console.log('getINQSearchResult getINQSearchResult ');
+        this._searchService.getINQSearchResult(this.values)
+            .subscribe(
+            searchreturn => {
+                this.searchreturn = searchreturn;
+                console.log('items: searchResults' + searchreturn);
+                this.errorReturns = <ReturnCodes[]>this.searchreturn.return_codes;
+                console.log('fff', this.errorReturns);
+                if(this.errorReturns !=null){
+                    this.errorreturn =  this.errorReturns[0];
+                    this.isDisplayErrorDialog=true;
+                     this.msgs.push({severity: 'warn', summary: 'Failed', detail: "Error Type: "+this.errorreturn.error_type+ "Error message: " + this.errorreturn.error_msg})
+
+                }
+                if (this.errorReturns.length > 0)
+                    this.router.navigate(['/searchresult']);
+            }
+            ,
+            error => {
+                console.log(error);
+            },
+            () => console.log("Job Done Get !", this.searchreturn.return_codes)
+            );
+    }
+    exportCSV(posttable: SearchReturn[]) {
+        var mystyle = {
+            headers: true,
+            caption: 'My Data',
+            css: '.headers {color:yellow} .cell {color:blue} .caption: {font-size:200px}'
+        };
+        console.log('exportCSV posttable' + posttable);
+        alasql('SELECT * INTO XLSX("report.XLSX",?) FROM ?', [mystyle, posttable]);
+    }
+
+    redirectHome(){
+        this.msgs=[];
+         console.log('redirectHome' );
+         this.router.navigate(['/dashboard']);
+    }
+}
+
+=========
+
+search.ts
+
+import {Component,OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {InqSearchComponent} from './inqsearch.component'
+import {SearchService} from '../services/search.service';
+import {SearchResult} from './search.result';
+import {RoutingDataValue } from '../services/routingdata';
+import {ReturnCodes} from '../search/returncodes.component';
+
+// form validations and mandatory messages
+import { Validators,FormControl,FormGroup,FormBuilder} from '@angular/forms';
+import {Messages,Message,SelectItem} from 'primeng/primeng';
+//form validations ends
+@Component({
+    moduleId:module.id,
+    selector:'search',
+    templateUrl:'search.html',
+})
+
+export class SearchComponent implements OnInit {// form validations and mandatory messages
+    // form validations and mandatory messages
+    msgs: Message[] = [];
+    isDisplaymsg:boolean=false;
+    sourcecodes: SelectItem[];
+
+    seininputform: FormGroup;
+    submitted: boolean;
+    //form validations ends
+    _seachinputcomponent:InqSearchComponent;
+    disabled: boolean = true;
+    return_codes:ReturnCodes[];
+    returncodes:ReturnCodes;
+
+    toggleDisabled() {
+        this.disabled = !this.disabled;
+    }
+
+
+    constructor(private _searchService:SearchService, private router: Router,
+                private routingdatavalues:RoutingDataValue,private _fb: FormBuilder){
+
+        this._seachinputcomponent={
+            ein:0,
+            policynumber:'',
+            seinid:'',
+            firstname:'',
+            lastname:'',
+            dateofbirth:'',
+            state:'',
+            postalcode:'',
+            cdbxrefid:'',
+            xwkeinid:'',
+            sourcecode:''
+        }
+        this.sourcecodes = [];
+        this.sourcecodes.push({label:'Select', value:''});
+        this.sourcecodes.push({label:'CS', value:'CS'});
+        this.sourcecodes.push({label:'OX', value:'OX'});
+        this.sourcecodes.push({label:'PA', value:'PA'});
+        this.sourcecodes.push({label:'RF', value:'RF'});
+        this.sourcecodes.push({label:'SH', value:'SH'});
+
+    }
+    // form validations and mandatory messages
+    ngOnInit() {
+        console.log('seininputform seininputform');
+        // form validations and mandatory messages
+        this.seininputform = this._fb.group({
+            'cein': new FormControl(''),
+            'cpolicynumber': new FormControl(''),
+            'csourcecode': new FormControl(''),
+            'cseinid': new FormControl(''),
+            'cfirstname': new FormControl(''),
+            'clastname': new FormControl(''),
+            'cdateofbirth': new FormControl(''),
+            'cstate': new FormControl(''),
+            'cpostalcode': new FormControl(''),
+            'ccdbxrefid': new FormControl(''),
+            'cxwkeinid': new FormControl('')
+        });
+
+        console.log('routing data -->  '+JSON.stringify(this.routingdatavalues.routingDataStorage));
+        if(this.routingdatavalues.routingDataStorage)
+        {
+
+           /* let body = res.json();
+            console.log("Body"+body);
+            return body || {};*/
+            let body = this.routingdatavalues.routingDataStorage||{};
+            console.log(body) ;
+            this.return_codes = <ReturnCodes[]>body;
+            console.log( "this.return_codes"+this.return_codes);
+            console.log(this.return_codes.length)
+            this.returncodes=this.return_codes[0];
+            console.log(this.returncodes);
+            this.msgs.push({severity: 'warn', summary: 'Failed', detail: this.returncodes.error_msg})
+        }
+      //  return_codes:this.routingdatavalues.routingDataStorage
+       // this.msgs.push(JSON.stringify(this.routingdatavalues.routingDataStorage))
+    }
+    // form validations and mandatory messages
+    clearvalues() {
+        console.log('clearvalues search ts', this._seachinputcomponent.ein);
+          this.msgs=[];
+        this._seachinputcomponent.ein=0;
+        this._seachinputcomponent.policynumber='';
+        this._seachinputcomponent.seinid='';
+        this._seachinputcomponent.firstname='';
+        this._seachinputcomponent.lastname='';
+        this._seachinputcomponent.dateofbirth='';
+        this._seachinputcomponent.state='';
+        this._seachinputcomponent.postalcode='';
+        this._seachinputcomponent.cdbxrefid='';
+        this._seachinputcomponent.xwkeinid='';
+        this._seachinputcomponent.sourcecode='';
+    }
+    closeDialog(){
+        this.msgs=[];
+        this.isDisplaymsg=false;
+    }
+    searchsubmit(){
+        console.log('submit search');
+        this.msgs=[];
+       /* this.routingdatavalues.routingDataStorage={
+            "searchinputs":{
+                "ein": this._seachinputcomponent.ein,
+                "policynumber":this._seachinputcomponent.policynumber,
+                "sourcecode":this._seachinputcomponent.sourcecode,
+                "seinid":this._seachinputcomponent.seinid,
+                "firstname":this._seachinputcomponent.firstname,
+                "lastname":this._seachinputcomponent.lastname,
+                "dateofbirth":this._seachinputcomponent.dateofbirth,
+                "state":this._seachinputcomponent.state,
+                "postalcode":this._seachinputcomponent.postalcode,
+                "cdbxrefid":this._seachinputcomponent.cdbxrefid,
+                "xwkeinid":this._seachinputcomponent.xwkeinid,
+                "sourcecode":this._seachinputcomponent.sourcecode
+            }
+        }*/
+
+        if(this._seachinputcomponent.policynumber =='' && this._seachinputcomponent.seinid=='' && this._seachinputcomponent.cdbxrefid=='' &&this._seachinputcomponent.xwkeinid=='')
+        {
+            if (this._seachinputcomponent.ein > 0) {
+                console.log('navigate to search result  ');
+                this.router.navigate(['/searchresult']);
+            }
+            else { // form validations and mandatory messages
+                // login failed
+                this.msgs.push({severity: 'warn', summary: 'Mandatory', detail: 'EIN ID is required'});
+            } // form validations and mandatory messages
+        }
+        if( !(this._seachinputcomponent.ein > 0)&&  this._seachinputcomponent.seinid=='' && this._seachinputcomponent.cdbxrefid=='' &&this._seachinputcomponent.xwkeinid=='')
+        {
+            if (this._seachinputcomponent.policynumber!='') {
+                console.log('navigate to search result  ');
+                this.router.navigate(['/searchresult']);
+            }
+            else { // form validations and mandatory messages
+                // login failed
+                this.msgs.push({severity: 'warn', summary: 'Mandatory', detail: 'Policy Number is required'});
+            } // form validations and mandatory messages
+        }
+        if( !(this._seachinputcomponent.ein > 0) &&  this._seachinputcomponent.policynumber =='' && this._seachinputcomponent.cdbxrefid=='' &&this._seachinputcomponent.xwkeinid=='')
+        {
+            if (this._seachinputcomponent.seinid!='') {
+                console.log('navigate to search result  ');
+                this.router.navigate(['/searchresult']);
+            }
+            else { // form validations and mandatory messages
+                // login failed
+                this.msgs.push({severity: 'warn', summary: 'Mandatory', detail: 'SEIN Sub ID is required'});
+            } // form validations and mandatory messages
+        }
+        if( !(this._seachinputcomponent.ein > 0) &&  this._seachinputcomponent.seinid=='' && this._seachinputcomponent.policynumber=='' &&this._seachinputcomponent.xwkeinid=='')
+        {
+
+            if (this._seachinputcomponent.cdbxrefid!='') {
+                console.log('navigate to search result  ');
+                this.router.navigate(['/searchresult']);
+            }
+            else { // form validations and mandatory messages
+                // login failed
+                this.msgs.push({severity: 'warn', summary: 'Failed', detail: 'CDB Xref ID is required'});
+            } // form validations and mandatory messages
+        }
+        if( !(this._seachinputcomponent.ein > 0) && this._seachinputcomponent.seinid=='' && this._seachinputcomponent.cdbxrefid=='' &&this._seachinputcomponent.policynumber=='')
+        {
+            if (this._seachinputcomponent.xwkeinid!='') {
+                console.log('navigate to search result  ');
+                this.router.navigate(['/searchresult']);
+            }
+            else { // form validations and mandatory messages
+                // login failed
+                this.msgs.push({severity: 'warn', summary: 'Failed', detail: 'Crosswalk EIN ID is required'});
+            } // form validations and mandatory messages
+        }
+   if(this.msgs!=null && this.msgs.length>0){
+        this.isDisplaymsg=true;
+        console.log('inside is display --> '+this.isDisplaymsg);
+   }   
+   
+    }
+}
+
+
+============
+search.html
+
+
+
+
+<dashboard></dashboard>
+
+  
+
+<form [formGroup]="seininputform" >
+<p-dialog header="Messages" [(visible)]="isDisplaymsg"  styleClass="ui-dialog-titlebar-close">
+      <p-messages  [value]="msgs" ></p-messages >
+ <div class="ui-grid-col-6">
+        <button pButton type="text" (click)="closeDialog()" label="Close" class="ui-button-warning"></button>
+    </div>
+</p-dialog>
+
+    <p-panel header="SEIN Input for search result">
+        <div class="ui-grid ui-grid-responsive ui-grid-pad ui-fluid" style="margin: 10px 0px">
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    EIN*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cein"   [(ngModel)]="_seachinputcomponent.ein"/>
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    First Name:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cfirstname"   [(ngModel)]="_seachinputcomponent.firstname"/>
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    Policy Number*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cpolicynumber"    [(ngModel)]="_seachinputcomponent.policynumber" />
+                </div>
+                <div class="ui-grid-col-4">
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    Last Name*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="clastname"   [(ngModel)]="_seachinputcomponent.lastname"/>
+                </div>
+                <div class="ui-grid-col-4">
+                </div>
+            </div>
+
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    SEIN Sub ID*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cseinid"   icon="fa"  [(ngModel)]="_seachinputcomponent.seinid" />
+
+                </div>
+                <div class="ui-grid-col-4">
+                </div>
+            </div>
+
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    Date of Birth:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cdateofbirth"     [(ngModel)]="_seachinputcomponent.dateofbirth" />
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    CDB Xref ID*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="ccdbxrefid"    [(ngModel)]="_seachinputcomponent.cdbxrefid" />
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    State:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cstate"    [(ngModel)]="_seachinputcomponent.state" />
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    Crosswalk EIN ID*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cxwkeinid"     [(ngModel)]="_seachinputcomponent.xwkeinid" />
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    Postal Code:
+                </div>
+                <div class="ui-grid-col-6">
+                    <input pInputText type="text" formControlName="cpostalcode"    [(ngModel)]="_seachinputcomponent.postalcode" />
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-2">
+                    Source Code*:
+                </div>
+                <div class="ui-grid-col-6">
+                    <p-dropdown [options]="sourcecodes" formControlName="csourcecode" [autoWidth]="false" [(ngModel)]="_seachinputcomponent.sourcecode"></p-dropdown>
+                </div>
+                <div class="ui-grid-col-4">
+
+                </div>
+            </div>
+
+
+            <div class="ui-grid-row">
+                <div class="ui-grid-col-6">
+                    <div class="ui-grid-col-4">
+                        <button pButton type="submit" class="ui-button-warning" label="Submit" (click)="searchsubmit()" ></button>
+                    </div>
+                </div>
+                <div class="ui-grid-col-6">
+                    <div class="ui-grid-col-4">
+                        <button pButton type="text" (click)="clearvalues()" label="Clear" class="ui-button-warning"></button>
+                    </div>
+                </div>
+            </div>
+
+            <h4>At least one of the fields with * is required</h4>
+            <h4>** If CDB Xref ID or SEIN ID are not populated</h4>
+        </div>
+    </p-panel>
+</form>
+
+
+=============================
+
+searchresult.html
+
+
+<dashboard></dashboard>
+
+<p-dialog header="Error Response" [(visible)]="isDisplayErrorDialog" styleClass="ui-dialog-titlebar-close">
+    <p-messages [value]="msgs"></p-messages>
+    <div class="ui-grid-col-6">
+        <button pButton type="text" (click)="redirectHome()" label="Home" class="ui-button-warning"></button>
+    </div>
+</p-dialog>
+<p-dataTable [value]="searchResults" [rows]="3" [paginator]="true" [pageLinks]="6" [responsive]="true" scrollHeight="400px"
+    scrollable="true" [stacked]="stacked">
+    <p-header>Search Result</p-header>
+    <p-column field="name" header="Name"></p-column>
+    <p-column field="email" header="Email"></p-column>
+    <p-column field="body" header="Body"></p-column>
+    </p-dataTable>
+
+    <button (click)="exportCSV(searchResults)">Export table to Excel</button>
+    
+    
+    
+    ======================================================================
+    
+    searchreturn.component.ts
+    
+    
+import {ReturnCodes} from '../search/returncodes.component';
+export class SearchReturn {
+return_codes: ReturnCodes [] =[];
+constructor() {
+}
+}
+
+
+=====================
+
+
+
