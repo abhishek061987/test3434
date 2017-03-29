@@ -334,3 +334,46 @@ searchresult.html
     <button (click)="exportCSV(searchResults)">Export table to Excel</button>
 
  </p-panel> <!-- show input on search results-->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ==========================================================================================
+ 
+ search.html with two cloumn in a row
+ 
+ =============================
+ 
+ 
+<div class="ui-g"  style="background-color: #aaa">
+    <div class="ui-g-12 ui-md-6 ui-lg-3">EIN*:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"> <input pInputText type="text" formControlName="cein"   [(ngModel)]="_seachinputcomponent.ein"/></div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3">First Name:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cfirstname"   [(ngModel)]="_seachinputcomponent.firstname"/></div>
+     <div class="ui-g-12 ui-md-6 ui-lg-3">Policy Number*</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cpolicynumber"    [(ngModel)]="_seachinputcomponent.policynumber" /></div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3">Last Name*:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="clastname"   [(ngModel)]="_seachinputcomponent.lastname"/></div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3">SEIN Sub ID*:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cseinid"     [(ngModel)]="_seachinputcomponent.seinid" /></div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3">Date of Birth:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cdateofbirth"     [(ngModel)]="_seachinputcomponent.dateofbirth" /></div>
+   <div class="ui-g-12 ui-md-6 ui-lg-3">CDB Xref ID*:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="ccdbxrefid"    [(ngModel)]="_seachinputcomponent.cdbxrefid" /></div>
+   <div class="ui-g-12 ui-md-6 ui-lg-3">State:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cstate"    [(ngModel)]="_seachinputcomponent.state" /></div>
+   <div class="ui-g-12 ui-md-6 ui-lg-3">Crosswalk EIN ID*:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cxwkeinid"     [(ngModel)]="_seachinputcomponent.xwkeinid" /></div>
+   <div class="ui-g-12 ui-md-6 ui-lg-3">Postal Code:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cpostalcode"    [(ngModel)]="_seachinputcomponent.postalcode" /></div>
+   <div class="ui-g-12 ui-md-6 ui-lg-3">Source Code*:</div>
+    <div class="ui-g-12 ui-md-6 ui-lg-3"><input pInputText type="text" formControlName="cpostalcode"    [(ngModel)]="_seachinputcomponent.postalcode" /></div>
+  
+</div>
+================================================================
+
