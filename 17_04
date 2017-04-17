@@ -1,0 +1,89 @@
+
+
+search result page
+
+<p-dataTable [value]="datasource"  [rows]="10" [totalRecords]="totalRecords" [paginator]="true" [lazy]="true" 
+ (onLazyLoad)="loadSearchResultLazy($event)"  [responsive]="true" scrollHeight="400px"
+    scrollable="true" [stacked]="stacked">
+    <p-header>Search Result</p-header>
+    <p-column field="error_type" header="Name"></p-column>
+    <p-column field="error_cd" header="Email"></p-column>
+    </p-dataTable>
+    
+    =======================search result ts ===========
+    loadSearchResultLazy(event: LazyLoadEvent) {
+        //in a real application, make a remote request to load data using state metadata from event
+        //event.first = First row offset
+        //event.rows = Number of rows per page
+        //event.sortField = Field name to sort with
+        //event.sortOrder = Sort order as number, 1 for asc and -1 for dec
+        //filters: FilterMetadata object having field as key and filter value, filter matchMode as value
+        //imitate db connection over a network
+         console.log('loadSearchResultLazy  event ' +event);
+         console.log('loadSearchResultLazy  first ' +event.first);
+         console.log('loadSearchResultLazy  rows ' +event.rows);
+         console.log('loadSearchResultLazy  sortfield ' +event.sortField);
+         if(event.first==10)
+         this.values = "2";//page 2
+         if(event.first==20)
+         this.values = "3";//page 3      
+         
+         /***
+          * 
+          totalrecords get from rest api, while calling first time rest api for page 1 ; add 1 field to response totalrecords get the cound from db.
+
+            on loading page 1st time just fetch first 10 records from db order by id
+             if(values== '2')
+                 this.searchUrl = 'http://jsonplaceholder.typicode.com/posts/1/comments/2';  // fetch records from 11 to 20 from db order by id
+             if(values== '3')
+                this.searchUrl = 'http://jsonplaceholder.typicode.com/posts/1/comments/3'     // fetch records from 21 to 30 from db order by id  
+          */
+         this._searchService.getINQSearchResult(this.values)
+            .subscribe(
+                searchreturn => {
+                 this.searchreturn = searchreturn;
+                 console.log('items: searchResults' + searchreturn);
+                 this.errorReturns = <ReturnCodes[]>this.searchreturn.return_codes;              
+                 this.datasource=this.errorReturns.slice(0,10); // it will show only ten records or less // so ur rest api should return 10 records or less
+                 console.log('fff', this.errorReturns);        
+                 if (this.errorReturns!=null && this.errorReturns.length > 0)
+                        this.router.navigate(['/searchresult']);
+                },
+                error => {
+                 console.log(error);
+                },
+                () => console.log("Job Done Get !", this.searchreturn.return_codes)
+            );
+    }
+    
+    -----onload
+    
+     getINQSearchResult() {
+        this.isDisplayErrorDialog=false;
+        console.log('getINQSearchResult getINQSearchResult ');
+        this._searchService.getINQSearchResult(this.values)
+            .subscribe(
+            searchreturn => {
+                this.searchreturn = searchreturn;
+                console.log('items: searchResults' + searchreturn);
+                this.errorReturns = <ReturnCodes[]>this.searchreturn.return_codes;
+                 this.totalRecords = 100;
+                this.datasource=this.errorReturns.slice(0,10);
+                console.log('fff', this.errorReturns);
+             
+                if (this.errorReturns!=null && this.errorReturns.length > 0)
+                    this.router.navigate(['/searchresult']);
+            }
+            ,
+            error => {
+                console.log(error);
+            },
+            () => console.log("Job Done Get !", this.searchreturn.return_codes)
+            );
+    }
+    
+    
+    
+    ============================
+    
+    
